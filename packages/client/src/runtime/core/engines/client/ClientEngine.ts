@@ -27,6 +27,7 @@ import { assertNever } from '@prisma/internals'
 import type { JsonQuery } from '@prisma/json-protocol'
 
 import { version as clientVersion } from '../../../../../package.json'
+import { deserializeRawParameters } from '../../../utils/deserializeRawParameters'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
@@ -704,7 +705,7 @@ function isRawQuery(query: JsonQuery): query is JsonQuery & { action: 'queryRaw'
 
 function compileRawQuery(query: JsonQuery & { action: 'queryRaw' | 'executeRaw' }): QueryPlanNode {
   const sql = query.query.arguments!['query']
-  const args = JSON.parse(query.query.arguments!['parameters'] as string) as PrismaValue[]
+  const args = deserializeRawParameters(query.query.arguments!['parameters'] as string) as PrismaValue[]
   const argTypes = args.map((arg) => ({
     scalarType: 'unknown',
     arity: Array.isArray(arg) ? 'list' : 'scalar',
